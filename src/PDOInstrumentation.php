@@ -111,16 +111,30 @@ class PDOInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::query', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
+
+                $sqlStatement  = $params[0] ?? 'undefined';
                 if ($class === PDO::class) {
-                    $builder->setAttribute(TraceAttributes::DB_QUERY_TEXT, mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8'));
+                    $builder->setAttribute(TraceAttributes::DB_QUERY_TEXT, mb_convert_encoding($sqlStatement, 'UTF-8'));
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
+
+                if (Configuration::getBoolean('SW_APM_ENABLED_SQLCOMMENT', false) && $sqlStatement !== 'undefined') {
+                    $sqlStatement = self::appendSqlComments($sqlStatement);
+                    $span->setAttributes([
+                        TraceAttributes::DB_QUERY_TEXT => $sqlStatement,
+                    ]);
+                }
 
                 $attributes = $pdoTracker->trackedAttributesForPdo($pdo);
                 $span->setAttributes($attributes);
 
                 Context::storage()->attach($span->storeInContext($parent));
+                if (Configuration::getBoolean('SW_APM_ENABLED_SQLCOMMENT', false) && $sqlStatement !== 'undefined') {
+                    return [
+                        0 => $sqlStatement
+                    ];
+                }
             },
             post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
                 self::end($exception);
@@ -134,16 +148,29 @@ class PDOInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::exec', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
+                $sqlStatement  = $params[0] ?? 'undefined';
                 if ($class === PDO::class) {
-                    $builder->setAttribute(TraceAttributes::DB_QUERY_TEXT, mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8'));
+                    $builder->setAttribute(TraceAttributes::DB_QUERY_TEXT, mb_convert_encoding($sqlStatement, 'UTF-8'));
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
+
+                if (Configuration::getBoolean('SW_APM_ENABLED_SQLCOMMENT', false) && $sqlStatement !== 'undefined') {
+                    $sqlStatement = self::appendSqlComments($sqlStatement);
+                    $span->setAttributes([
+                        TraceAttributes::DB_QUERY_TEXT => $sqlStatement,
+                    ]);
+                }
 
                 $attributes = $pdoTracker->trackedAttributesForPdo($pdo);
                 $span->setAttributes($attributes);
 
                 Context::storage()->attach($span->storeInContext($parent));
+                if (Configuration::getBoolean('SW_APM_ENABLED_SQLCOMMENT', false) && $sqlStatement !== 'undefined') {
+                    return [
+                        0 => $sqlStatement
+                    ];
+                }
             },
             post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
                 self::end($exception);
@@ -328,5 +355,14 @@ class PDOInstrumentation
         }
 
         return filter_var(get_cfg_var('otel.instrumentation.pdo.distribute_statement_to_linked_spans'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+    }
+
+    private static function appendSqlComments(string $query): string
+    {
+        $comments = Opentelemetry::getOpentelemetryValues();
+        $query = trim($query);
+        $hasSemicolon = $query[-1] === ';';
+        $query = rtrim($query, ';');
+        return $query . Utils::formatComments(array_filter($comments)) . ($hasSemicolon ? ';' : '');
     }
 }
