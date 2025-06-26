@@ -112,9 +112,9 @@ class PDOInstrumentation
                 $builder = self::makeBuilder($instrumentation, 'PDO::query', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
 
-                $sqlStatement  = $params[0] ?? 'undefined';
+                $sqlStatement = mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8');
                 if ($class === PDO::class) {
-                    $builder->setAttribute(TraceAttributes::DB_QUERY_TEXT, mb_convert_encoding($sqlStatement, 'UTF-8'));
+                    $builder->setAttribute(TraceAttributes::DB_QUERY_TEXT, $sqlStatement);
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -134,6 +134,8 @@ class PDOInstrumentation
                     return [
                         0 => $sqlStatement
                     ];
+                } else {
+                    return [];
                 }
             },
             post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
@@ -148,9 +150,9 @@ class PDOInstrumentation
                 /** @psalm-suppress ArgumentTypeCoercion */
                 $builder = self::makeBuilder($instrumentation, 'PDO::exec', $function, $class, $filename, $lineno)
                     ->setSpanKind(SpanKind::KIND_CLIENT);
-                $sqlStatement  = $params[0] ?? 'undefined';
+                $sqlStatement = mb_convert_encoding($params[0] ?? 'undefined', 'UTF-8');
                 if ($class === PDO::class) {
-                    $builder->setAttribute(TraceAttributes::DB_QUERY_TEXT, mb_convert_encoding($sqlStatement, 'UTF-8'));
+                    $builder->setAttribute(TraceAttributes::DB_QUERY_TEXT, $sqlStatement);
                 }
                 $parent = Context::getCurrent();
                 $span = $builder->startSpan();
@@ -170,6 +172,8 @@ class PDOInstrumentation
                     return [
                         0 => $sqlStatement
                     ];
+                } else {
+                    return [];
                 }
             },
             post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
