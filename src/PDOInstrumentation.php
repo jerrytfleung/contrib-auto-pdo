@@ -129,10 +129,9 @@ class PDOInstrumentation
                         return [
                             0 => $sqlStatement
                         ];
-                    } else {
-                        return [];
                     }
                 }
+                return [];
             },
             post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
                 self::end($exception);
@@ -164,10 +163,9 @@ class PDOInstrumentation
                         return [
                             0 => $sqlStatement
                         ];
-                    } else {
-                        return [];
                     }
                 }
+                return [];
             },
             post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
                 self::end($exception);
