@@ -120,16 +120,18 @@ class PDOInstrumentation
                 $attributes = $pdoTracker->trackedAttributesForPdo($pdo);
                 $span->setAttributes($attributes);
                 Context::storage()->attach($span->storeInContext($parent));
-                if (Configuration::getBoolean('SW_APM_ENABLED_SQLCOMMENT', false) && $sqlStatement !== 'undefined') {
-                    $sqlStatement = self::appendSqlComments($sqlStatement);
-                    $span->setAttributes([
-                        TraceAttributes::DB_QUERY_TEXT => $sqlStatement
-                    ]);
-                    return [
-                        0 => $sqlStatement
-                    ];
-                } else {
-                    return [];
+                if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration')) {
+                    if (Configuration::getBoolean('SW_APM_ENABLED_SQLCOMMENT', false) && $sqlStatement !== 'undefined') {
+                        $sqlStatement = self::appendSqlComments($sqlStatement);
+                        $span->setAttributes([
+                            TraceAttributes::DB_QUERY_TEXT => $sqlStatement
+                        ]);
+                        return [
+                            0 => $sqlStatement
+                        ];
+                    } else {
+                        return [];
+                    }
                 }
             },
             post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
@@ -153,16 +155,18 @@ class PDOInstrumentation
                 $attributes = $pdoTracker->trackedAttributesForPdo($pdo);
                 $span->setAttributes($attributes);
                 Context::storage()->attach($span->storeInContext($parent));
-                if (Configuration::getBoolean('SW_APM_ENABLED_SQLCOMMENT', false) && $sqlStatement !== 'undefined') {
-                    $sqlStatement = self::appendSqlComments($sqlStatement);
-                    $span->setAttributes([
-                        TraceAttributes::DB_QUERY_TEXT => $sqlStatement
-                    ]);
-                    return [
-                        0 => $sqlStatement
-                    ];
-                } else {
-                    return [];
+                if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration')) {
+                    if (Configuration::getBoolean('SW_APM_ENABLED_SQLCOMMENT', false) && $sqlStatement !== 'undefined') {
+                        $sqlStatement = self::appendSqlComments($sqlStatement);
+                        $span->setAttributes([
+                            TraceAttributes::DB_QUERY_TEXT => $sqlStatement
+                        ]);
+                        return [
+                            0 => $sqlStatement
+                        ];
+                    } else {
+                        return [];
+                    }
                 }
             },
             post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
