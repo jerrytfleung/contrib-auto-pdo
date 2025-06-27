@@ -1,5 +1,5 @@
 {
-  "name": "open-telemetry/opentelemetry-auto-pdo",
+  "name": "jerrytfleung/contrib-auto-pdo",
   "description": "OpenTelemetry auto-instrumentation for PDO",
   "keywords": ["opentelemetry", "otel", "open-telemetry", "tracing", "pdo", "instrumentation"],
   "type": "library",
