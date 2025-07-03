@@ -121,7 +121,7 @@ class PDOInstrumentation
                 $span->setAttributes($attributes);
                 Context::storage()->attach($span->storeInContext($parent));
                 if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration')) {
-                    if (Configuration::getBoolean('SW_APM_ENABLED_SQLCOMMENT', false) && $sqlStatement !== 'undefined') {
+                    if (Configuration::getBoolean('SW_APM_SQLTAGGER', false) && $sqlStatement !== 'undefined') {
                         $sqlStatement = self::appendSqlComments($sqlStatement);
                         $span->setAttributes([
                             TraceAttributes::DB_QUERY_TEXT => $sqlStatement
@@ -155,7 +155,7 @@ class PDOInstrumentation
                 $span->setAttributes($attributes);
                 Context::storage()->attach($span->storeInContext($parent));
                 if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration')) {
-                    if (Configuration::getBoolean('SW_APM_ENABLED_SQLCOMMENT', false) && $sqlStatement !== 'undefined') {
+                    if (Configuration::getBoolean('SW_APM_SQLTAGGER', false) && $sqlStatement !== 'undefined') {
                         $sqlStatement = self::appendSqlComments($sqlStatement);
                         $span->setAttributes([
                             TraceAttributes::DB_QUERY_TEXT => $sqlStatement
