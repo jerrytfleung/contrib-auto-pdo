@@ -120,8 +120,8 @@ class PDOInstrumentation
                 $attributes = $pdoTracker->trackedAttributesForPdo($pdo);
                 $span->setAttributes($attributes);
                 Context::storage()->attach($span->storeInContext($parent));
-                if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration')) {
-                    if (Configuration::getBoolean('SW_APM_ENABLED_SQLCOMMENT', false) && $sqlStatement !== 'undefined') {
+                if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes)) {
+                    if (self::isSQLCommenterSupport(strval($attributes[TraceAttributes::DB_SYSTEM_NAME])) && $sqlStatement !== 'undefined') {
                         $sqlStatement = self::appendSqlComments($sqlStatement);
                         $span->setAttributes([
                             TraceAttributes::DB_QUERY_TEXT => $sqlStatement
@@ -154,8 +154,8 @@ class PDOInstrumentation
                 $attributes = $pdoTracker->trackedAttributesForPdo($pdo);
                 $span->setAttributes($attributes);
                 Context::storage()->attach($span->storeInContext($parent));
-                if (class_exists('OpenTelemetry\SDK\Common\Configuration\Configuration')) {
-                    if (Configuration::getBoolean('SW_APM_ENABLED_SQLCOMMENT', false) && $sqlStatement !== 'undefined') {
+                if (array_key_exists(TraceAttributes::DB_SYSTEM_NAME, $attributes)) {
+                    if (self::isSQLCommenterSupport(strval($attributes[TraceAttributes::DB_SYSTEM_NAME])) && $sqlStatement !== 'undefined') {
                         $sqlStatement = self::appendSqlComments($sqlStatement);
                         $span->setAttributes([
                             TraceAttributes::DB_QUERY_TEXT => $sqlStatement
@@ -359,5 +359,9 @@ class PDOInstrumentation
         $hasSemicolon = $query[-1] === ';';
         $query = rtrim($query, ';');
         return $query . Utils::formatComments(array_filter($comments)) . ($hasSemicolon ? ';' : '');
+    }
+
+    private static function isSQLCommenterSupport(string $db) : bool {
+        return $db == "postgresql" || $db == "mysql";
     }
 }
